@@ -3,59 +3,48 @@ package com.company.enroller.persistence;
 import java.util.Collection;
 
 import org.hibernate.Query;
-import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Component;
 
-import com.company.enroller.exceptions.NoMeetingFoundException;
 import com.company.enroller.model.Meeting;
 
 @Component("meetingService")
 public class MeetingService {
 
-    Session session;
+    DatabaseConnector connector;
 
     public MeetingService() {
-        session = DatabaseConnector.getInstance().getSession();
+        connector = DatabaseConnector.getInstance();
     }
 
     public Collection<Meeting> getAll() {
-        String hql = "FROM Meeting";
-        Query query = this.session.createQuery(hql);
+        /* String hql = "FROM Meeting";
+        Query query = connector.getSession().createQuery(hql);
         return query.list();
+         */
+         return connector.getSession().createCriteria(Meeting.class).list();
     }
 
     public Meeting findById(long id) {
-        Meeting meeting = (Meeting) this.session.get(Meeting.class, id);
-        if (meeting == null) {
-            throw new NoMeetingFoundException("No meeting with id '" + id + "' was found");
-        }
-        return meeting;
+        return (Meeting) connector.getSession().get(Meeting.class, id);
     }
 
-    public void delete(Meeting meeting) {
-        Transaction transaction = this.session.beginTransaction();
-        this.session.delete(meeting);
+    public void addMeeting(Meeting meeting) {
+        Transaction transaction = connector.getSession().beginTransaction();
+        connector.getSession().save(meeting);
         transaction.commit();
     }
 
-    public void add(Meeting meeting) {
-        Transaction transaction = this.session.beginTransaction();
-        this.session.save(meeting);
+    public void removeMeeting(Meeting meeting) {
+        Transaction transaction = connector.getSession().beginTransaction();
+        connector.getSession().delete(meeting);
         transaction.commit();
     }
 
-    public void update(Meeting meeting) {
-        Transaction transaction = this.session.beginTransaction();
-        this.session.merge(meeting);
+    public void updateMeeting(Meeting meeting) {
+        Transaction transaction = connector.getSession().beginTransaction();
+        connector.getSession().update(meeting);
         transaction.commit();
-    }
-
-    public boolean alreadyExist(Meeting meeting) {
-        String hql = "FROM Meeting WHERE title=:title AND date=:date";
-        Query query = this.session.createQuery(hql);
-        Collection resultList = query.setParameter("title", meeting.getTitle()).setParameter("date", meeting.getDate()).list();
-        return query.list().size() != 0;
     }
 
 }

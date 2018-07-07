@@ -2,51 +2,38 @@ package com.company.enroller.persistence;
 
 import java.util.Collection;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Component;
 
-import com.company.enroller.exceptions.NoParticipantFoundException;
 import com.company.enroller.model.Participant;
+import org.hibernate.Transaction;
 
 @Component("participantService")
 public class ParticipantService {
 
-	Session session;
+    DatabaseConnector connector;
 
-	public ParticipantService() {
-		session = DatabaseConnector.getInstance().getSession();
-	}
+    public ParticipantService() {
+        connector = DatabaseConnector.getInstance();
+    }
 
-	public Collection<Participant> getAll() {
-		return session.createCriteria(Participant.class).list();
-	}
+    public Collection<Participant> getAll() {
+        return connector.getSession().createCriteria(Participant.class).list();
+    }
 
-	public Participant findByLogin(String login) {
-		Participant participant = (Participant) this.session.get(Participant.class, login);
-		if (participant==null) {
-			throw new NoParticipantFoundException("No participant with login '" + login + "' was found");
-		}
-		return participant;
-	}
+    public Participant findByLogin(String login) {
+        return (Participant) connector.getSession().get(Participant.class, login);
+    }
 
-	public Participant add(Participant participant) {
-		Transaction transaction = this.session.beginTransaction();
-		this.session.save(participant);
-		transaction.commit();
-		return participant;
-	}
+    public void addParticipant(Participant participant) {
+        Transaction transaction = connector.getSession().beginTransaction();
+        connector.getSession().save(participant);
+        transaction.commit();
+    }
 
-	public void update(Participant participant) {
-		Transaction transaction = this.session.beginTransaction();
-		this.session.merge(participant);
-		transaction.commit();
-	}
+    public void delete(Participant requestedParticipant) {
+        Transaction transaction = connector.getSession().beginTransaction();
+        connector.getSession().delete(requestedParticipant);
+        transaction.commit();
 
-	public void delete(Participant participant) {
-		Transaction transaction = this.session.beginTransaction();
-		this.session.delete(participant);
-		transaction.commit();
-	}
-
+    }
 }

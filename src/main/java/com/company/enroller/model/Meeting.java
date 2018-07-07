@@ -4,11 +4,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
@@ -16,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "meeting")
-public class Meeting {
+public class Meeting implements Comparable<Meeting>{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,9 +35,11 @@ public class Meeting {
 	private String date;
 
 	@JsonIgnore
-	@ManyToMany(mappedBy = "meetings")
+	@ManyToMany(cascade = { CascadeType.ALL })
+	@JoinTable(name = "meeting_participant", joinColumns = { @JoinColumn(name = "meeting_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "participant_login") })
 	Set<Participant> participants = new HashSet<>();
-	
+
 	public long getId() {
 		return id;
 	}
@@ -78,5 +83,10 @@ public class Meeting {
 	public Collection<Participant> getParticipants() {
 		return participants;
 	}
+
+    @Override
+    public int compareTo(Meeting o) {
+        return this.getTitle().compareTo(o.getTitle());
+    }
 
 }
